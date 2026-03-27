@@ -4,9 +4,9 @@
 
 - [x] `npx create-expo-app memorization --template tabs`
 - [x] Install and configure: NativeWind, Expo Router, Drizzle, Zustand, TanStack Query
-- [ ] Set up Supabase project, get keys, `lib/supabase.ts`
+- [x] Set up Supabase project, get keys, `lib/supabase.ts`
 - [x] Set up Drizzle schema + first migration (decks, notes, cards, streak, settings)
-- [ ] EAS project init (`eas build:configure`)
+- [x] EAS project init (`eas build:configure`)
 - [ ] Set up GitHub repo + CI skeleton
 
 **Goal:** App boots on iOS/Android/Web, shows placeholder home screen.
