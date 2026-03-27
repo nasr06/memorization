@@ -14,7 +14,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.yourname.recall",
+      "bundleIdentifier": "com.nabster06.recall",
       "infoPlist": {
         "NSCameraUsageDescription": "For scanning friend QR codes"
       }
@@ -24,7 +24,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#6C63FF"
       },
-      "package": "com.yourname.recall",
+      "package": "com.nabster06.recall",
       "permissions": [
         "CAMERA",
         "VIBRATE",
