@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Bash(ls app/ app/\\\\\\(tabs\\\\\\)/ db/ lib/ store/ supabase/migrations/)",
+      "Bash(npx tsc:*)"
+    ]
+  }
+}
