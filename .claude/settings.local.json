@@ -4,7 +4,19 @@
       "Bash(npm install:*)",
       "Bash(npm run:*)",
       "Bash(ls app/ app/\\\\\\(tabs\\\\\\)/ db/ lib/ store/ supabase/migrations/)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Read(//c/Users/**)",
+      "Bash(npx eslint:*)",
+      "Bash(python3 -c \":*)",
+      "Bash(node -e \":*)",
+      "Bash(diff -rq --exclude=*.git 'c:/Users/HP OMEN/projects/memorization/.claude/worktrees/agent-a526c80c/' 'c:/Users/HP OMEN/projects/memorization/')",
+      "Bash(npm show:*)",
+      "Bash(node -e \"const d = require\\(''./node_modules/drizzle-orm/package.json''\\); console.log\\(d.version\\)\")",
+      "Bash(node -e \"const SQLite = require\\(''''c:/Users/HP OMEN/projects/memorization/node_modules/expo-sqlite''''\\); console.log\\(Object.keys\\(SQLite\\)\\)\")",
+      "Bash(find 'c:/Users/HP OMEN/projects/memorization/node_modules/expo-modules-core' -name requireNativeModule.web.* -not -name *.map)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\(''''exports'''', {}\\), indent=2\\)\\)\")",
+      "Bash(node -e \"const p=require\\(''''c:/Users/HP OMEN/projects/memorization/node_modules/expo-sqlite/package.json''''\\); console.log\\(JSON.stringify\\(p.exports||{}, null, 2\\)\\)\")",
+      "Bash(node -e \"const p=require\\(''c:/Users/HP OMEN/projects/memorization/node_modules/sql.js/package.json''\\); console.log\\(p.main, p.browser\\)\")"
     ]
   }
 }

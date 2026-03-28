@@ -17,14 +17,14 @@
 
 Priority: get the fundamental loop working end-to-end.
 
-- [ ] Drizzle schema: decks, note_types, notes, cards, review_log
-- [ ] SM-2 algorithm (`lib/sm2.ts`) + unit tests
-- [ ] Deck creation screen (basic)
-- [ ] Card creation screen (text only)
-- [ ] Study session screen: card flip animation, rating buttons
-- [ ] Scheduling: SM-2 applied on rating, persisted to SQLite
-- [ ] Home screen: list due cards per deck, "Study All" button
-- [ ] Basic streak tracking (local only)
+- [x] Drizzle schema: decks, note_types, notes, cards, review_log
+- [x] SM-2 algorithm (`lib/sm2.ts`) + unit tests
+- [x] Deck creation screen (basic)
+- [x] Card creation screen (text only)
+- [x] Study session screen: card flip animation, rating buttons
+- [x] Scheduling: SM-2 applied on rating, persisted to SQLite
+- [x] Home screen: list due cards per deck, "Study All" button
+- [x] Basic streak tracking (local only)
 - [ ] Local settings: daily goal, theme
 
 **Goal:** Can create a deck, add cards, study with SM-2, see due counts. Offline only.
