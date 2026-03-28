@@ -39,7 +39,7 @@ Priority: get the fundamental loop working end-to-end.
 - [x] Import UI: file picker → progress → preview → confirm
 - [x] Media handling: copy images/audio to document directory
 - [x] Card rendering: display HTML card templates (WebView or RN renderer)
-- [ ] Test with real Anki decks (Japanese, vocabulary, etc.)
+- [x] Test with real Anki decks (Japanese, vocabulary, etc.)
 - [x] .apkg export: `lib/apkg/export.ts`
 
 **Goal:** User can import any standard Anki deck and study it.

@@ -345,30 +345,27 @@ export default function StudyScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-bg">
-      {/* Header */}
-      <View className="flex-row items-center justify-between px-6 pt-4 pb-2">
+      {/* Header: back button + progress bar + counter on one row */}
+      <View className="flex-row items-center px-6 pt-4 pb-4 gap-3">
         <TouchableOpacity
           onPress={() => router.back()}
-          className="w-10 h-10 rounded-full bg-surface items-center justify-center"
+          className="w-10 h-10 rounded-full bg-surface items-center justify-center shrink-0"
         >
           <ArrowLeft size={20} color="#F0F0F5" />
         </TouchableOpacity>
-        <Text className="text-subtext text-sm">
+        <View className="flex-1 h-2 bg-surface rounded-full overflow-hidden">
+          <View
+            className="h-full bg-primary rounded-full"
+            style={{ width: `${progress * 100}%` }}
+          />
+        </View>
+        <Text className="text-subtext text-sm shrink-0">
           {currentIndex + 1} / {cards.length}
         </Text>
-        <View className="w-10" />
       </View>
 
-      {/* Progress bar */}
-      <View className="mx-6 mb-4 h-2 bg-surface rounded-full overflow-hidden">
-        <View
-          className="h-full bg-primary rounded-full"
-          style={{ width: `${progress * 100}%` }}
-        />
-      </View>
-
-      {/* Card area */}
-      <View className="flex-1 px-6 justify-center">
+      {/* Card area — takes all remaining space */}
+      <View className="flex-1 px-6">
         {/* XP burst overlay */}
         <Animated.View
           style={[
@@ -390,9 +387,6 @@ export default function StudyScreen() {
           onFlip={handleFlip}
           front={
             <View className="flex-1 bg-card rounded-3xl p-6 items-center justify-center">
-              <Text className="text-subtext text-xs uppercase tracking-widest mb-4">
-                Front
-              </Text>
               <CardRenderer
                 content={currentCard?.frontHtml ?? ""}
                 css={currentCard?.css}
@@ -408,9 +402,6 @@ export default function StudyScreen() {
           }
           back={
             <View className="flex-1 bg-surface rounded-3xl p-6 items-center justify-center border border-primary/30">
-              <Text className="text-subtext text-xs uppercase tracking-widest mb-4">
-                Back
-              </Text>
               <CardRenderer
                 content={currentCard?.backHtml ?? ""}
                 css={currentCard?.css}
@@ -420,61 +411,52 @@ export default function StudyScreen() {
             </View>
           }
         />
+      </View>
 
-        {/* Rating buttons / Show Answer — always occupy space; hidden during animation */}
-        <View
-          className="mt-6"
-          style={{ opacity: isFlipAnimating || isTransitioning ? 0 : 1 }}
-          pointerEvents={isFlipAnimating || isTransitioning ? "none" : "auto"}
-        >
-          {isFlipped ? (
-            <>
-              <Text className="text-subtext text-xs text-center mb-3 uppercase tracking-widest">
-                How well did you know this?
-              </Text>
-              <View className="flex-row gap-2">
-                {([1, 2, 3, 4] as const).map((rating) => {
-                  const preview = currentCard
-                    ? sm2(rating, {
-                        ease: currentCard.ease ?? 2.5,
-                        interval: currentCard.interval ?? 1,
-                        reps: currentCard.reps ?? 0,
-                        due: currentCard.due ?? 0,
-                      })
-                    : null;
+      {/* Rating buttons / Show Answer — pinned to bottom */}
+      <View
+        className="px-6 pt-4 pb-4"
+        style={{ opacity: isFlipAnimating || isTransitioning ? 0 : 1 }}
+        pointerEvents={isFlipAnimating || isTransitioning ? "none" : "auto"}
+      >
+        {isFlipped ? (
+          <View className="flex-row gap-2">
+            {([1, 2, 3, 4] as const).map((rating) => {
+              const preview = currentCard
+                ? sm2(rating, {
+                    ease: currentCard.ease ?? 2.5,
+                    interval: currentCard.interval ?? 1,
+                    reps: currentCard.reps ?? 0,
+                    due: currentCard.due ?? 0,
+                  })
+                : null;
 
-                  return (
-                    <TouchableOpacity
-                      key={rating}
-                      className="flex-1 rounded-2xl py-3 items-center"
-                      style={{ backgroundColor: RATING_COLORS[rating] + "20" }}
-                      onPress={() => handleRate(rating)}
-                    >
-                      <Text
-                        className="font-bold text-sm"
-                        style={{ color: RATING_COLORS[rating] }}
-                      >
-                        {RATING_LABELS[rating]}
-                      </Text>
-                      {preview && (
-                        <Text className="text-subtext text-xs mt-1">
-                          {getIntervalLabel(preview)}
-                        </Text>
-                      )}
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </>
-          ) : (
-            <TouchableOpacity
-              className="bg-primary rounded-2xl py-4 items-center"
-              onPress={handleFlip}
-            >
-              <Text className="text-white font-bold">Show Answer</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+              return (
+                <TouchableOpacity
+                  key={rating}
+                  className="flex-1 rounded-2xl py-4 items-center"
+                  style={{ backgroundColor: RATING_COLORS[rating] + "20" }}
+                  onPress={() => handleRate(rating)}
+                >
+                  <Text
+                    className="font-bold text-sm"
+                    style={{ color: RATING_COLORS[rating] }}
+                  >
+                    {RATING_LABELS[rating]}
+                    {preview ? ` (${getIntervalLabel(preview)})` : ""}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        ) : (
+          <TouchableOpacity
+            className="bg-primary rounded-2xl py-4 items-center"
+            onPress={handleFlip}
+          >
+            <Text className="text-white font-bold">Show Answer</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </SafeAreaView>
   );

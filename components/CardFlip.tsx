@@ -48,8 +48,7 @@ export function CardFlip({ front, back, isFlipped, onFlip }: CardFlipProps) {
     <TouchableOpacity
       onPress={onFlip}
       activeOpacity={0.9}
-      className="w-full"
-      style={{ height: 300 }}
+      className="w-full flex-1"
     >
       <View style={{ flex: 1 }}>
         <Animated.View style={frontAnimatedStyle}>
