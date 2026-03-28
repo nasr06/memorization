@@ -1,6 +1,7 @@
 import JSZip from "jszip";
 import { Platform } from "react-native";
 import { db } from "@/db/client";
+import { saveMedia } from "@/lib/mediaStore";
 import { decks, noteTypes, notes, cards } from "@/db/schema";
 import { addXPToStreak } from "@/db/queries/streak";
 import { readAnkiDb } from "./ankiReader";
@@ -201,9 +202,13 @@ export async function importApkg(
       for (let i = 0; i < mediaEntries.length; i++) {
         const [numericName, originalName] = mediaEntries[i];
         const file = zip.file(numericName);
-        if (file && mediaDir) {
+        if (file) {
           const bytes = await file.async("uint8array");
-          await writeMediaFile(mediaDir + originalName, bytes);
+          if (Platform.OS === "web") {
+            await saveMedia(deckId, originalName, bytes);
+          } else if (mediaDir) {
+            await writeMediaFile(mediaDir + originalName, bytes);
+          }
           mediaCount++;
         }
         report(

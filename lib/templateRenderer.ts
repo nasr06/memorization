@@ -40,6 +40,12 @@ export function renderAnkiTemplate(
   // Remove any remaining unresolved {{...}} placeholders
   result = result.replace(/\{\{[^}]*\}\}/g, "");
 
+  // Convert [sound:filename] to <audio> tags (controls added by each platform renderer)
+  result = result.replace(
+    /\[sound:(.*?)\]/g,
+    (_, filename) => `<audio src="${filename}"></audio>`
+  );
+
   return result;
 }
 

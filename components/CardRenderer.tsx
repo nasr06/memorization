@@ -6,6 +6,7 @@ interface CardRendererProps {
   content: string;
   css?: string | null;
   deckId?: string;
+  isActive?: boolean;
 }
 
 function containsHtml(str: string): boolean {

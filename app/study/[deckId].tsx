@@ -382,6 +382,7 @@ export default function StudyScreen() {
                 content={currentCard?.frontHtml ?? ""}
                 css={currentCard?.css}
                 deckId={deckId}
+                isActive={!isFlipped}
               />
               {!isFlipped && (
                 <Text className="text-subtext text-sm mt-6 absolute bottom-6">
@@ -399,6 +400,7 @@ export default function StudyScreen() {
                 content={currentCard?.backHtml ?? ""}
                 css={currentCard?.css}
                 deckId={deckId}
+                isActive={isFlipped}
               />
             </View>
           }
