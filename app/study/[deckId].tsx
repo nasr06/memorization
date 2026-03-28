@@ -80,7 +80,9 @@ export default function StudyScreen() {
   const [xpBurst, setXpBurst] = useState(0);
   const [cardStartTime, setCardStartTime] = useState(Date.now());
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isFlipAnimating, setIsFlipAnimating] = useState(false);
   const transitionTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const flipAnimTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const xpOpacity = useSharedValue(0);
   const xpTranslateY = useSharedValue(0);
@@ -150,8 +152,12 @@ export default function StudyScreen() {
   };
 
   const handleFlip = useCallback(() => {
+    if (isFlipAnimating) return;
     setIsFlipped((prev) => !prev);
-  }, []);
+    setIsFlipAnimating(true);
+    if (flipAnimTimeout.current) clearTimeout(flipAnimTimeout.current);
+    flipAnimTimeout.current = setTimeout(() => setIsFlipAnimating(false), 600);
+  }, [isFlipAnimating]);
 
   const handleRate = async (rating: 1 | 2 | 3 | 4) => {
     if (isTransitioning) return;
@@ -415,56 +421,60 @@ export default function StudyScreen() {
           }
         />
 
-        {/* Rating buttons - shown after flip */}
-        {isFlipped ? (
-          <View className="mt-6">
-            <Text className="text-subtext text-xs text-center mb-3 uppercase tracking-widest">
-              How well did you know this?
-            </Text>
-            <View className="flex-row gap-2">
-              {([1, 2, 3, 4] as const).map((rating) => {
-                const preview = currentCard
-                  ? sm2(rating, {
-                      ease: currentCard.ease ?? 2.5,
-                      interval: currentCard.interval ?? 1,
-                      reps: currentCard.reps ?? 0,
-                      due: currentCard.due ?? 0,
-                    })
-                  : null;
+        {/* Rating buttons / Show Answer — always occupy space; hidden during animation */}
+        <View
+          className="mt-6"
+          style={{ opacity: isFlipAnimating || isTransitioning ? 0 : 1 }}
+          pointerEvents={isFlipAnimating || isTransitioning ? "none" : "auto"}
+        >
+          {isFlipped ? (
+            <>
+              <Text className="text-subtext text-xs text-center mb-3 uppercase tracking-widest">
+                How well did you know this?
+              </Text>
+              <View className="flex-row gap-2">
+                {([1, 2, 3, 4] as const).map((rating) => {
+                  const preview = currentCard
+                    ? sm2(rating, {
+                        ease: currentCard.ease ?? 2.5,
+                        interval: currentCard.interval ?? 1,
+                        reps: currentCard.reps ?? 0,
+                        due: currentCard.due ?? 0,
+                      })
+                    : null;
 
-                return (
-                  <TouchableOpacity
-                    key={rating}
-                    className="flex-1 rounded-2xl py-3 items-center"
-                    style={{ backgroundColor: RATING_COLORS[rating] + "20" }}
-                    onPress={() => handleRate(rating)}
-                  >
-                    <Text
-                      className="font-bold text-sm"
-                      style={{ color: RATING_COLORS[rating] }}
+                  return (
+                    <TouchableOpacity
+                      key={rating}
+                      className="flex-1 rounded-2xl py-3 items-center"
+                      style={{ backgroundColor: RATING_COLORS[rating] + "20" }}
+                      onPress={() => handleRate(rating)}
                     >
-                      {RATING_LABELS[rating]}
-                    </Text>
-                    {preview && (
-                      <Text className="text-subtext text-xs mt-1">
-                        {getIntervalLabel(preview)}
+                      <Text
+                        className="font-bold text-sm"
+                        style={{ color: RATING_COLORS[rating] }}
+                      >
+                        {RATING_LABELS[rating]}
                       </Text>
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </View>
-        ) : (
-          <View className="mt-6">
+                      {preview && (
+                        <Text className="text-subtext text-xs mt-1">
+                          {getIntervalLabel(preview)}
+                        </Text>
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </>
+          ) : (
             <TouchableOpacity
               className="bg-primary rounded-2xl py-4 items-center"
               onPress={handleFlip}
             >
               <Text className="text-white font-bold">Show Answer</Text>
             </TouchableOpacity>
-          </View>
-        )}
+          )}
+        </View>
       </View>
     </SafeAreaView>
   );

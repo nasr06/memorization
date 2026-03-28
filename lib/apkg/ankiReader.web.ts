@@ -1,26 +1,7 @@
-// Web Anki SQLite reader — uses sql.js asm.js (same as the web DB client).
-// No WASM file needed; the asm.js build is pure JavaScript.
+// Web Anki SQLite reader — uses the shared sql.js singleton (see lib/sqlJs.web.ts).
+// Sharing the singleton avoids allocating two separate ~256 MB WASM heaps.
 import type { ParsedAnkiData, AnkiNote, AnkiCard } from "./types";
-
-type SqlJsStatic = {
-  Database: new (data?: Uint8Array) => SqlDatabase;
-};
-
-type SqlDatabase = {
-  exec(sql: string): Array<{ columns: string[]; values: unknown[][] }>;
-  close(): void;
-};
-
-let sqlJsPromise: Promise<SqlJsStatic> | null = null;
-
-function getSqlJs(): Promise<SqlJsStatic> {
-  if (!sqlJsPromise) {
-    sqlJsPromise = import("sql.js/dist/sql-asm.js").then(
-      (m) => m.default() as Promise<SqlJsStatic>
-    );
-  }
-  return sqlJsPromise;
-}
+import { getSqlJs } from "@/lib/sqlJs";
 
 function rowsToObjects<T>(result: {
   columns: string[];

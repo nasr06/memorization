@@ -2,6 +2,7 @@
 // Data does not persist between page reloads.
 import { drizzle } from "drizzle-orm/sql-js";
 import * as schema from "./schema";
+import { getSqlJs } from "@/lib/sqlJs";
 
 type DrizzleDB = ReturnType<typeof drizzle<typeof schema>>;
 
@@ -82,8 +83,7 @@ let _db: DrizzleDB | null = null;
 // Eagerly start initialization; resolved before any query runs
 // because _layout.tsx awaits runMigrations() (see migrate.web.ts).
 export const webDbReady: Promise<void> = (async () => {
-  const { default: initSqlJs } = await import("sql.js/dist/sql-asm.js");
-  const SQL = await initSqlJs();
+  const SQL = await getSqlJs();
   const sqlDb = new SQL.Database();
   sqlDb.run(MIGRATION_SQL);
   _db = drizzle(sqlDb, { schema });
