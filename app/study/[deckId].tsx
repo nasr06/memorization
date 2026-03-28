@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import {
   Text,
   View,
@@ -79,6 +79,8 @@ export default function StudyScreen() {
   const [deckName, setDeckName] = useState("");
   const [xpBurst, setXpBurst] = useState(0);
   const [cardStartTime, setCardStartTime] = useState(Date.now());
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const transitionTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const xpOpacity = useSharedValue(0);
   const xpTranslateY = useSharedValue(0);
@@ -152,6 +154,7 @@ export default function StudyScreen() {
   }, []);
 
   const handleRate = async (rating: 1 | 2 | 3 | 4) => {
+    if (isTransitioning) return;
     const card = cards[currentIndex];
     if (!card) return;
 
@@ -215,9 +218,15 @@ export default function StudyScreen() {
       await queryClient.invalidateQueries({ queryKey: ["streak"] });
       setIsComplete(true);
     } else {
-      setCurrentIndex(nextIndex);
+      // Flip back to front first, then swap card content after the animation (600ms)
       setIsFlipped(false);
-      setCardStartTime(Date.now());
+      setIsTransitioning(true);
+      if (transitionTimeout.current) clearTimeout(transitionTimeout.current);
+      transitionTimeout.current = setTimeout(() => {
+        setCurrentIndex(nextIndex);
+        setCardStartTime(Date.now());
+        setIsTransitioning(false);
+      }, 600);
     }
   };
 
