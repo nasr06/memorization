@@ -33,14 +33,14 @@ Priority: get the fundamental loop working end-to-end.
 
 ## Phase 2 — .apkg Import (Week 2)
 
-- [ ] Install JSZip + sql.js
-- [ ] `lib/apkg/parser.ts`: parse Anki collection.anki2 schema
-- [ ] `lib/apkg/import.ts`: full import pipeline
-- [ ] Import UI: file picker → progress → preview → confirm
-- [ ] Media handling: copy images/audio to document directory
-- [ ] Card rendering: display HTML card templates (WebView or RN renderer)
+- [x] Install JSZip + sql.js
+- [x] `lib/apkg/parser.ts`: parse Anki collection.anki2 schema
+- [x] `lib/apkg/import.ts`: full import pipeline
+- [x] Import UI: file picker → progress → preview → confirm
+- [x] Media handling: copy images/audio to document directory
+- [x] Card rendering: display HTML card templates (WebView or RN renderer)
 - [ ] Test with real Anki decks (Japanese, vocabulary, etc.)
-- [ ] .apkg export: `lib/apkg/export.ts`
+- [x] .apkg export: `lib/apkg/export.ts`
 
 **Goal:** User can import any standard Anki deck and study it.
 

@@ -8,7 +8,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, ChevronRight } from "lucide-react-native";
+import { Plus, ChevronRight, PackageOpen } from "lucide-react-native";
 import { getAllDecks, getDeckStats } from "@/db/queries/decks";
 import type { Deck } from "@/db/schema";
 import type { DeckStats } from "@/db/queries/decks";
@@ -47,12 +47,20 @@ export default function DecksScreen() {
       {/* Header */}
       <View className="flex-row items-center justify-between px-6 pt-6 pb-4">
         <Text className="text-3xl font-bold text-text-primary">My Decks</Text>
-        <TouchableOpacity
-          onPress={() => router.push("/deck/new")}
-          className="bg-primary rounded-full w-10 h-10 items-center justify-center"
-        >
-          <Plus size={22} color="#fff" />
-        </TouchableOpacity>
+        <View className="flex-row gap-2">
+          <TouchableOpacity
+            onPress={() => router.push("/import")}
+            className="bg-surface rounded-full w-10 h-10 items-center justify-center"
+          >
+            <PackageOpen size={20} color="#6C63FF" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => router.push("/deck/new")}
+            className="bg-primary rounded-full w-10 h-10 items-center justify-center"
+          >
+            <Plus size={22} color="#fff" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {isLoading ? (
@@ -78,6 +86,12 @@ export default function DecksScreen() {
                 onPress={() => router.push("/deck/new")}
               >
                 <Text className="text-white font-bold">Create Deck</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className="mt-3 bg-surface rounded-2xl px-6 py-3"
+                onPress={() => router.push("/import")}
+              >
+                <Text className="text-primary font-bold">Import .apkg</Text>
               </TouchableOpacity>
             </View>
           }

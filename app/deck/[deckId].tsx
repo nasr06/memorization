@@ -9,9 +9,10 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, BookOpen, Plus, Trash2, Play } from "lucide-react-native";
+import { ArrowLeft, BookOpen, Plus, Trash2, Play, Share2 } from "lucide-react-native";
 import { getDeckById, getDeckStats, deleteDeck } from "@/db/queries/decks";
 import { getNotesByDeck } from "@/db/queries/notes";
+import { exportApkg } from "@/lib/apkg/export";
 
 export default function DeckDetailScreen() {
   const { deckId } = useLocalSearchParams<{ deckId: string }>();
@@ -32,6 +33,15 @@ export default function DeckDetailScreen() {
     queryKey: ["notes", deckId],
     queryFn: () => getNotesByDeck(deckId),
   });
+
+  const handleExport = async () => {
+    try {
+      await exportApkg(deckId);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Export failed";
+      Alert.alert("Export Failed", msg);
+    }
+  };
 
   const handleDelete = () => {
     Alert.alert(
@@ -83,12 +93,20 @@ export default function DeckDetailScreen() {
         >
           <ArrowLeft size={20} color="#F0F0F5" />
         </TouchableOpacity>
-        <TouchableOpacity
-          onPress={handleDelete}
-          className="w-10 h-10 rounded-full bg-surface items-center justify-center"
-        >
-          <Trash2 size={18} color="#F44336" />
-        </TouchableOpacity>
+        <View className="flex-row gap-2">
+          <TouchableOpacity
+            onPress={handleExport}
+            className="w-10 h-10 rounded-full bg-surface items-center justify-center"
+          >
+            <Share2 size={18} color="#6C63FF" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={handleDelete}
+            className="w-10 h-10 rounded-full bg-surface items-center justify-center"
+          >
+            <Trash2 size={18} color="#F44336" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView

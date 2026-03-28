@@ -1,7 +1,7 @@
 import { eq, and } from "drizzle-orm";
 import { db } from "@/db/client";
 import { notes, noteTypes, cards } from "@/db/schema";
-import type { Note, Card } from "@/db/schema";
+import type { Note, Card, NoteType } from "@/db/schema";
 
 export async function createNoteWithCard(
   deckId: string,
@@ -63,6 +63,21 @@ export async function createNoteWithCard(
   await db.insert(cards).values(newCard);
 
   return { note: newNote as Note, card: newCard as Card };
+}
+
+export async function getNotesWithTypes(
+  deckId: string
+): Promise<Array<Note & { noteType: NoteType | null }>> {
+  const rows = await db
+    .select()
+    .from(notes)
+    .leftJoin(noteTypes, eq(notes.noteTypeId, noteTypes.id))
+    .where(eq(notes.deckId, deckId));
+
+  return rows.map((row) => ({
+    ...row.notes,
+    noteType: row.note_types ?? null,
+  }));
 }
 
 export async function getNotesByDeck(

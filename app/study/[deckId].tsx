@@ -16,10 +16,12 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { CardFlip } from "@/components/CardFlip";
+import { CardRenderer } from "@/components/CardRenderer";
 import { getDueAndNewCards } from "@/db/queries/cards";
 import { updateCardSchedule, logReview } from "@/db/queries/cards";
-import { getNotesByDeck } from "@/db/queries/notes";
+import { getNotesWithTypes } from "@/db/queries/notes";
 import { getDeckById } from "@/db/queries/decks";
+import { renderAnkiTemplate } from "@/lib/templateRenderer";
 import { recordStudyDay, addXPToStreak } from "@/db/queries/streak";
 import { useStreakStore } from "@/store/useStreakStore";
 import { sm2, xpForRating } from "@/lib/sm2";
@@ -27,8 +29,9 @@ import type { Card } from "@/db/schema";
 import type { CardSchedule } from "@/lib/sm2";
 
 interface CardWithContent extends Card {
-  front: string;
-  back: string;
+  frontHtml: string;
+  backHtml: string;
+  css: string;
 }
 
 interface SessionStats {
@@ -92,30 +95,48 @@ export default function StudyScreen() {
   const loadCards = async () => {
     setIsLoading(true);
     try {
-      const [dueCards, noteList, deck] = await Promise.all([
+      const [dueCards, notesWithTypes, deck] = await Promise.all([
         getDueAndNewCards(deckId),
-        getNotesByDeck(deckId),
+        getNotesWithTypes(deckId),
         getDeckById(deckId),
       ]);
 
       if (deck) setDeckName(deck.name);
 
-      const noteMap = new Map(noteList.map((n) => [n.id, n]));
+      const noteMap = new Map(notesWithTypes.map((n) => [n.id, n]));
+
       const enriched: CardWithContent[] = dueCards
         .map((card) => {
           const note = noteMap.get(card.noteId ?? "");
           if (!note) return null;
+
           let fields: Record<string, string> = {};
           try {
             fields = JSON.parse(note.fields ?? "{}");
           } catch {}
-          return {
-            ...card,
-            front: fields["Front"] ?? "",
-            back: fields["Back"] ?? "",
-          };
+
+          const nt = note.noteType;
+          let templates: Array<{ front: string; back: string }> = [
+            { front: "{{Front}}", back: "{{Back}}" },
+          ];
+          let css = "";
+          if (nt) {
+            try {
+              const parsed = JSON.parse(nt.templates ?? "[]");
+              if (parsed.length > 0) templates = parsed;
+            } catch {}
+            css = nt.css ?? "";
+          }
+
+          const templateIndex = card.templateIndex ?? 0;
+          const tmpl = templates[templateIndex] ?? templates[0];
+
+          const frontHtml = renderAnkiTemplate(tmpl.front, fields);
+          const backHtml = renderAnkiTemplate(tmpl.back, fields, frontHtml);
+
+          return { ...card, frontHtml, backHtml, css };
         })
-        .filter((c): c is CardWithContent => c !== null);
+        .filter((c) => c !== null) as CardWithContent[];
 
       setCards(enriched);
       setCardStartTime(Date.now());
@@ -353,13 +374,15 @@ export default function StudyScreen() {
           isFlipped={isFlipped}
           onFlip={handleFlip}
           front={
-            <View className="flex-1 bg-card rounded-3xl p-8 items-center justify-center">
+            <View className="flex-1 bg-card rounded-3xl p-6 items-center justify-center">
               <Text className="text-subtext text-xs uppercase tracking-widest mb-4">
                 Front
               </Text>
-              <Text className="text-text-primary text-xl font-semibold text-center">
-                {currentCard?.front}
-              </Text>
+              <CardRenderer
+                content={currentCard?.frontHtml ?? ""}
+                css={currentCard?.css}
+                deckId={deckId}
+              />
               {!isFlipped && (
                 <Text className="text-subtext text-sm mt-6 absolute bottom-6">
                   Tap to reveal
@@ -368,13 +391,15 @@ export default function StudyScreen() {
             </View>
           }
           back={
-            <View className="flex-1 bg-surface rounded-3xl p-8 items-center justify-center border border-primary/30">
+            <View className="flex-1 bg-surface rounded-3xl p-6 items-center justify-center border border-primary/30">
               <Text className="text-subtext text-xs uppercase tracking-widest mb-4">
                 Back
               </Text>
-              <Text className="text-text-primary text-xl font-semibold text-center">
-                {currentCard?.back}
-              </Text>
+              <CardRenderer
+                content={currentCard?.backHtml ?? ""}
+                css={currentCard?.css}
+                deckId={deckId}
+              />
             </View>
           }
         />
