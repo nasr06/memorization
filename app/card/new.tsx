@@ -104,20 +104,22 @@ export default function NewCardScreen() {
       type: ["audio/*"],
       copyToCacheDirectory: true,
     });
-    if (result.canceled || !result.assets[0]) return;
+    if (result.canceled || !result.assets?.[0]) return;
 
     const asset = result.assets[0];
     try {
-      const base64 = await FileSystem.readAsStringAsync(asset.uri, {
+      // content:// URIs (Android) aren't readable directly — copy to cache first
+      const cacheUri = FileSystem.cacheDirectory + asset.name;
+      await FileSystem.copyAsync({ from: asset.uri, to: cacheUri });
+      const base64 = await FileSystem.readAsStringAsync(cacheUri, {
         encoding: FileSystem.EncodingType.Base64,
       });
       const token = shortToken();
       const mime = asset.mimeType ?? "audio/mpeg";
       mediaMap.current.set(token, `<audio src="data:${mime};base64,${base64}" controls></audio>`);
-
       insertAtCursor(field, `[audio-${token}: ${asset.name}]`, "");
-    } catch {
-      Alert.alert("Error", "Could not read audio file.");
+    } catch (e) {
+      Alert.alert("Error", "Could not read audio file: " + String(e));
     }
   }
 
