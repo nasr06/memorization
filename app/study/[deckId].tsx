@@ -401,7 +401,7 @@ export default function StudyScreen() {
             </View>
           }
           back={
-            <View className="flex-1 bg-surface rounded-3xl p-6 items-center justify-center border border-primary/30">
+            <View className="flex-1 bg-surface rounded-3xl p-6 items-center justify-center">
               <CardRenderer
                 content={currentCard?.backHtml ?? ""}
                 css={currentCard?.css}
