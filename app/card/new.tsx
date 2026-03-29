@@ -14,7 +14,10 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, CheckCircle, Bold, Italic, Underline, Image, Music, Minus, Eye, Edit3 } from "lucide-react-native";
+import {
+  ArrowLeft, CheckCircle, Bold, Italic, Underline,
+  Image, Music, Minus, Eye, Edit3,
+} from "lucide-react-native";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system";
@@ -24,9 +27,15 @@ import { CardRenderer } from "@/components/CardRenderer";
 type Field = "front" | "back";
 type TabMode = "edit" | "preview";
 
-// Convert [sound:file] to <audio controls> so CardRenderer shows it in preview
-function toPreviewHtml(text: string): string {
-  return text.replace(/\[sound:(.*?)\]/g, (_, f) => `<audio src="${f}" controls></audio>`);
+function shortToken() {
+  return Math.random().toString(16).slice(2, 10);
+}
+
+// Replace [image-TOKEN: filename] / [audio-TOKEN: filename] placeholders with real HTML
+function resolveTokens(text: string, map: Map<string, string>): string {
+  return text.replace(/\[(image|audio)-([a-f0-9]{8})[^\]]*\]/g, (match, _type, token) => {
+    return map.get(token) ?? match;
+  });
 }
 
 export default function NewCardScreen() {
@@ -36,7 +45,6 @@ export default function NewCardScreen() {
 
   const [front, setFront] = useState("");
   const [back, setBack] = useState("");
-  const [activeField, setActiveField] = useState<Field>("front");
   const [tab, setTab] = useState<TabMode>("edit");
   const [addedCount, setAddedCount] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -45,6 +53,8 @@ export default function NewCardScreen() {
   const backRef = useRef<TextInput>(null);
   const frontSelection = useRef({ start: 0, end: 0 });
   const backSelection = useRef({ start: 0, end: 0 });
+  // token → actual HTML (data URI embedded)
+  const mediaMap = useRef<Map<string, string>>(new Map());
 
   const getValue = (field: Field) => (field === "front" ? front : back);
   const setValue = (field: Field, v: string) =>
@@ -52,14 +62,12 @@ export default function NewCardScreen() {
   const getSelection = (field: Field) =>
     field === "front" ? frontSelection : backSelection;
 
-  // Insert text at cursor or wrap selection with open/close tags
   function insertAtCursor(field: Field, open: string, close = "") {
     const val = getValue(field);
     const sel = getSelection(field).current;
     const { start, end } = sel;
     const selected = val.substring(start, end);
-    const inserted = open + selected + close;
-    const next = val.substring(0, start) + inserted + val.substring(end);
+    const next = val.substring(0, start) + open + selected + close + val.substring(end);
     setValue(field, next);
   }
 
@@ -81,9 +89,14 @@ export default function NewCardScreen() {
       Alert.alert("Error", "Could not read image data.");
       return;
     }
+
+    const token = shortToken();
     const mime = asset.mimeType ?? "image/jpeg";
-    const dataUri = `data:${mime};base64,${asset.base64}`;
-    insertAtCursor(field, `<img src="${dataUri}">`, "");
+    mediaMap.current.set(token, `<img src="data:${mime};base64,${asset.base64}">`);
+
+    // Show readable filename in editor, not the giant base64 string
+    const filename = asset.fileName ?? `image.${mime.split("/")[1] ?? "jpg"}`;
+    insertAtCursor(field, `[image-${token}: ${filename}]`, "");
   }
 
   async function pickAudio(field: Field) {
@@ -94,12 +107,18 @@ export default function NewCardScreen() {
     if (result.canceled || !result.assets[0]) return;
 
     const asset = result.assets[0];
-    const base64 = await FileSystem.readAsStringAsync(asset.uri, {
-      encoding: FileSystem.EncodingType.Base64,
-    });
-    const mime = asset.mimeType ?? "audio/mpeg";
-    const dataUri = `data:${mime};base64,${base64}`;
-    insertAtCursor(field, `<audio src="${dataUri}" controls></audio>`, "");
+    try {
+      const base64 = await FileSystem.readAsStringAsync(asset.uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+      const token = shortToken();
+      const mime = asset.mimeType ?? "audio/mpeg";
+      mediaMap.current.set(token, `<audio src="data:${mime};base64,${base64}" controls></audio>`);
+
+      insertAtCursor(field, `[audio-${token}: ${asset.name}]`, "");
+    } catch {
+      Alert.alert("Error", "Could not read audio file.");
+    }
   }
 
   const onSubmit = async () => {
@@ -115,13 +134,16 @@ export default function NewCardScreen() {
 
     setIsSubmitting(true);
     try {
-      await createNoteWithCard(deckId, front, back);
+      const resolvedFront = resolveTokens(front, mediaMap.current);
+      const resolvedBack = resolveTokens(back, mediaMap.current);
+      await createNoteWithCard(deckId, resolvedFront, resolvedBack);
       await queryClient.invalidateQueries({ queryKey: ["notes", deckId] });
       await queryClient.invalidateQueries({ queryKey: ["deck-stats", deckId] });
       await queryClient.invalidateQueries({ queryKey: ["decks"] });
       setAddedCount((n) => n + 1);
       setFront("");
       setBack("");
+      mediaMap.current.clear();
       setTab("edit");
     } catch {
       Alert.alert("Error", "Failed to add card. Please try again.");
@@ -129,6 +151,10 @@ export default function NewCardScreen() {
       setIsSubmitting(false);
     }
   };
+
+  // Resolve tokens for preview rendering
+  const previewFront = resolveTokens(front, mediaMap.current);
+  const previewBack = resolveTokens(back, mediaMap.current);
 
   const Toolbar = ({ field }: { field: Field }) => (
     <View className="flex-row bg-surface rounded-xl mb-2 overflow-hidden">
@@ -176,7 +202,6 @@ export default function NewCardScreen() {
                 <Text className="text-success text-xs font-medium">{addedCount} added</Text>
               </View>
             )}
-            {/* Edit / Preview toggle */}
             <View className="flex-row bg-surface rounded-xl overflow-hidden">
               <TouchableOpacity
                 className={`px-3 py-2 flex-row items-center gap-1 ${tab === "edit" ? "bg-primary" : ""}`}
@@ -202,7 +227,6 @@ export default function NewCardScreen() {
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={{ paddingBottom: 32 }}
           >
-            {/* Front */}
             <View className="mb-4">
               <Text className="text-text-primary font-semibold mb-2">
                 Front <Text className="text-danger">*</Text>
@@ -211,20 +235,19 @@ export default function NewCardScreen() {
               <TextInput
                 ref={frontRef}
                 className="bg-surface rounded-xl px-4 py-3 text-text-primary"
-                placeholder="Question or term... (HTML supported)"
+                placeholder="Question or term..."
                 placeholderTextColor="#8888AA"
-                onFocus={() => setActiveField("front")}
+                onFocus={() => {}}
                 onChangeText={setFront}
                 onSelectionChange={(e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
                   frontSelection.current = e.nativeEvent.selection;
                 }}
                 value={front}
                 multiline
-                style={{ textAlignVertical: "top", minHeight: 120, fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace" }}
+                style={{ textAlignVertical: "top", minHeight: 120 }}
               />
             </View>
 
-            {/* Back */}
             <View className="mb-6">
               <Text className="text-text-primary font-semibold mb-2">
                 Back <Text className="text-danger">*</Text>
@@ -233,16 +256,16 @@ export default function NewCardScreen() {
               <TextInput
                 ref={backRef}
                 className="bg-surface rounded-xl px-4 py-3 text-text-primary"
-                placeholder="Answer or definition... (HTML supported)"
+                placeholder="Answer or definition..."
                 placeholderTextColor="#8888AA"
-                onFocus={() => setActiveField("back")}
+                onFocus={() => {}}
                 onChangeText={setBack}
                 onSelectionChange={(e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
                   backSelection.current = e.nativeEvent.selection;
                 }}
                 value={back}
                 multiline
-                style={{ textAlignVertical: "top", minHeight: 120, fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace" }}
+                style={{ textAlignVertical: "top", minHeight: 120 }}
               />
             </View>
 
@@ -257,18 +280,23 @@ export default function NewCardScreen() {
             </TouchableOpacity>
           </ScrollView>
         ) : (
-          /* Preview */
           <View className="flex-1 px-6 gap-4">
             <View className="flex-1">
               <Text className="text-subtext text-xs font-semibold uppercase mb-2 tracking-widest">Front</Text>
               <View className="flex-1 bg-card rounded-3xl p-4">
-                <CardRenderer content={toPreviewHtml(front) || "<i style='color:#8888AA'>Nothing yet</i>"} deckId={deckId} />
+                <CardRenderer
+                  content={previewFront || "<i style='color:#8888AA'>Nothing yet</i>"}
+                  deckId={deckId}
+                />
               </View>
             </View>
             <View className="flex-1">
               <Text className="text-subtext text-xs font-semibold uppercase mb-2 tracking-widest">Back</Text>
               <View className="flex-1 bg-surface rounded-3xl p-4">
-                <CardRenderer content={toPreviewHtml(back) || "<i style='color:#8888AA'>Nothing yet</i>"} deckId={deckId} />
+                <CardRenderer
+                  content={previewBack || "<i style='color:#8888AA'>Nothing yet</i>"}
+                  deckId={deckId}
+                />
               </View>
             </View>
             <TouchableOpacity
