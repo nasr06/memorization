@@ -24,6 +24,11 @@ import { CardRenderer } from "@/components/CardRenderer";
 type Field = "front" | "back";
 type TabMode = "edit" | "preview";
 
+// Convert [sound:file] to <audio controls> so CardRenderer shows it in preview
+function toPreviewHtml(text: string): string {
+  return text.replace(/\[sound:(.*?)\]/g, (_, f) => `<audio src="${f}" controls></audio>`);
+}
+
 export default function NewCardScreen() {
   const { deckId } = useLocalSearchParams<{ deckId: string }>();
   const router = useRouter();
@@ -256,13 +261,13 @@ export default function NewCardScreen() {
             <View className="flex-1">
               <Text className="text-subtext text-xs font-semibold uppercase mb-2 tracking-widest">Front</Text>
               <View className="flex-1 bg-card rounded-3xl p-4">
-                <CardRenderer content={front || "<i style='color:#8888AA'>Nothing yet</i>"} deckId={deckId} />
+                <CardRenderer content={toPreviewHtml(front) || "<i style='color:#8888AA'>Nothing yet</i>"} deckId={deckId} />
               </View>
             </View>
             <View className="flex-1">
               <Text className="text-subtext text-xs font-semibold uppercase mb-2 tracking-widest">Back</Text>
               <View className="flex-1 bg-surface rounded-3xl p-4">
-                <CardRenderer content={back || "<i style='color:#8888AA'>Nothing yet</i>"} deckId={deckId} />
+                <CardRenderer content={toPreviewHtml(back) || "<i style='color:#8888AA'>Nothing yet</i>"} deckId={deckId} />
               </View>
             </View>
             <TouchableOpacity

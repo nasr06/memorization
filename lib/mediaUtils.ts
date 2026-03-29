@@ -2,5 +2,6 @@
 import * as FileSystem from "expo-file-system";
 
 export function getMediaBaseUrl(deckId: string): string | undefined {
-  return `file://${FileSystem.documentDirectory}media/${deckId}/`;
+  // documentDirectory already starts with file://, don't add it again
+  return `${FileSystem.documentDirectory}media/${deckId}/`;
 }
