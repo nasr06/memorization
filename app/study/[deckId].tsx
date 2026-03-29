@@ -413,10 +413,13 @@ export default function StudyScreen() {
         />
       </View>
 
-      {/* Rating buttons / Show Answer — pinned to bottom */}
+      {/* Rating buttons / Show Answer — pinned to bottom, fixed height so card never resizes */}
       <View
         className="px-6 pt-4 pb-4"
-        style={{ opacity: isFlipAnimating || isTransitioning ? 0 : 1 }}
+        style={{
+          height: 88,
+          opacity: isFlipAnimating || isTransitioning ? 0 : 1,
+        }}
         pointerEvents={isFlipAnimating || isTransitioning ? "none" : "auto"}
       >
         {isFlipped ? (
@@ -441,6 +444,8 @@ export default function StudyScreen() {
                   <Text
                     className="font-bold text-sm"
                     style={{ color: RATING_COLORS[rating] }}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
                   >
                     {RATING_LABELS[rating]}
                     {preview ? ` (${getIntervalLabel(preview)})` : ""}
