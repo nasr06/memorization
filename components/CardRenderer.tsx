@@ -85,6 +85,7 @@ export function CardRenderer({ content, css, deckId }: CardRendererProps) {
         allowFileAccess={!!mediaBaseUrl}
         allowFileAccessFromFileURLs={!!mediaBaseUrl}
         allowUniversalAccessFromFileURLs={!!mediaBaseUrl}
+        mediaPlaybackRequiresUserAction={false}
         mixedContentMode="always"
         showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}

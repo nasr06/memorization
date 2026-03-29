@@ -72,17 +72,18 @@ export default function NewCardScreen() {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 0.85,
+      base64: true,
     });
     if (result.canceled || !result.assets[0]) return;
 
     const asset = result.assets[0];
-    const ext = asset.uri.split(".").pop() ?? "jpg";
-    const filename = `${crypto.randomUUID()}.${ext}`;
-    const mediaDir = `${FileSystem.documentDirectory}media/${deckId}/`;
-    await FileSystem.makeDirectoryAsync(mediaDir, { intermediates: true });
-    await FileSystem.copyAsync({ from: asset.uri, to: mediaDir + filename });
-
-    insertAtCursor(field, `<img src="${filename}">`, "");
+    if (!asset.base64) {
+      Alert.alert("Error", "Could not read image data.");
+      return;
+    }
+    const mime = asset.mimeType ?? "image/jpeg";
+    const dataUri = `data:${mime};base64,${asset.base64}`;
+    insertAtCursor(field, `<img src="${dataUri}">`, "");
   }
 
   async function pickAudio(field: Field) {
@@ -93,12 +94,12 @@ export default function NewCardScreen() {
     if (result.canceled || !result.assets[0]) return;
 
     const asset = result.assets[0];
-    const filename = asset.name;
-    const mediaDir = `${FileSystem.documentDirectory}media/${deckId}/`;
-    await FileSystem.makeDirectoryAsync(mediaDir, { intermediates: true });
-    await FileSystem.copyAsync({ from: asset.uri, to: mediaDir + filename });
-
-    insertAtCursor(field, `[sound:${filename}]`, "");
+    const base64 = await FileSystem.readAsStringAsync(asset.uri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+    const mime = asset.mimeType ?? "audio/mpeg";
+    const dataUri = `data:${mime};base64,${base64}`;
+    insertAtCursor(field, `<audio src="${dataUri}" controls></audio>`, "");
   }
 
   const onSubmit = async () => {
