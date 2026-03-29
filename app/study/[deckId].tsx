@@ -417,7 +417,7 @@ export default function StudyScreen() {
       <View
         className="px-6 pt-4 pb-4"
         style={{
-          height: 88,
+          height: 104,
           opacity: isFlipAnimating || isTransitioning ? 0 : 1,
         }}
         pointerEvents={isFlipAnimating || isTransitioning ? "none" : "auto"}
@@ -437,7 +437,7 @@ export default function StudyScreen() {
               return (
                 <TouchableOpacity
                   key={rating}
-                  className="flex-1 py-4 items-center"
+                  className="flex-1 py-4 items-center justify-center"
                   style={{
                     backgroundColor: RATING_COLORS[rating] + "33",
                     borderRightWidth: idx < 3 ? 1 : 0,
@@ -448,19 +448,24 @@ export default function StudyScreen() {
                   <Text
                     className="font-bold text-sm"
                     style={{ color: RATING_COLORS[rating] }}
-                    numberOfLines={1}
-                    adjustsFontSizeToFit
                   >
                     {RATING_LABELS[rating]}
-                    {preview ? ` (${getIntervalLabel(preview)})` : ""}
                   </Text>
+                  {preview && (
+                    <Text
+                      className="text-xs mt-0.5"
+                      style={{ color: RATING_COLORS[rating] + "BB" }}
+                    >
+                      {getIntervalLabel(preview)}
+                    </Text>
+                  )}
                 </TouchableOpacity>
               );
             })}
           </View>
         ) : (
           <TouchableOpacity
-            className="bg-primary rounded-2xl py-4 items-center"
+            className="bg-primary rounded-2xl items-center justify-center flex-1"
             onPress={handleFlip}
           >
             <Text className="text-white font-bold">Show Answer</Text>
