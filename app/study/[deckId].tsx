@@ -423,8 +423,8 @@ export default function StudyScreen() {
         pointerEvents={isFlipAnimating || isTransitioning ? "none" : "auto"}
       >
         {isFlipped ? (
-          <View className="flex-row gap-2">
-            {([1, 2, 3, 4] as const).map((rating) => {
+          <View className="flex-row overflow-hidden rounded-2xl">
+            {([1, 2, 3, 4] as const).map((rating, idx) => {
               const preview = currentCard
                 ? sm2(rating, {
                     ease: currentCard.ease ?? 2.5,
@@ -437,8 +437,12 @@ export default function StudyScreen() {
               return (
                 <TouchableOpacity
                   key={rating}
-                  className="flex-1 rounded-2xl py-4 items-center"
-                  style={{ backgroundColor: RATING_COLORS[rating] + "20" }}
+                  className="flex-1 py-4 items-center"
+                  style={{
+                    backgroundColor: RATING_COLORS[rating] + "33",
+                    borderRightWidth: idx < 3 ? 1 : 0,
+                    borderRightColor: "#1a1a2e",
+                  }}
                   onPress={() => handleRate(rating)}
                 >
                   <Text
