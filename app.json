@@ -42,6 +42,12 @@
       "expo-router",
       "expo-notifications",
       [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Recall to attach images to cards."
+        }
+      ],
+      [
         "expo-camera",
         {
           "cameraPermission": "Allow Recall to use your camera"
